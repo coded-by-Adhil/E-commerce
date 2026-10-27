@@ -39,13 +39,6 @@ React SPA ──▶ Laravel API ──▶ MySQL
 
 ## Design Principles
 
-- **Money** is stored as integer minor units, never floats.
-- **Snapshots**: order lines copy price, name and address at purchase time.
-- **Stock safety**: atomic `UPDATE ... WHERE stock >= ?` inside a transaction.
-- **Idempotency**: unique `(user_id, idempotency_key)` for checkout and unique `event_id` for webhooks.
-- **Order status** changes only through a single state machine, with an audit trail.
-- **Payments**: card data never touches this system.
-
 Full ERD and decision log: [docs/decisions.md](docs/decisions.md)
 
 ## Order Lifecycle
@@ -58,9 +51,9 @@ pending ──▶ paid ──▶ shipped ──▶ delivered
 
 ## Roadmap
 
-- [x] Scope, ERD and decisions
+- [ ] Scope, ERD and decisions
 - [ ] Auth and roles
-- [ ] Catalog
+- [ ] Catalogue
 - [ ] Cart
 - [ ] Checkout
 - [ ] Order state machine
@@ -70,22 +63,3 @@ pending ──▶ paid ──▶ shipped ──▶ delivered
 - [ ] Admin panel
 - [ ] React frontend
 - [ ] CI/CD, deployment and monitoring
-
-## Getting Started
-
-Setup instructions will be added with the first implemented feature.
-
-```bash
-git clone https://github.com/<your-username>/e-commerce.git
-cd e-commerce
-```
-
-## Testing
-
-```bash
-php artisan test
-```
-
-## License
-
-MIT
