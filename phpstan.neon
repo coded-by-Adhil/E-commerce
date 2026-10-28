@@ -6,3 +6,5 @@ parameters:
     paths:
         - app
         - routes
+        - database/factories
+        - database/seeders
