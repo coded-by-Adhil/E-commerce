@@ -12,8 +12,6 @@ class Address extends Model
     /** @use HasFactory<AddressFactory> */
     use HasFactory;
 
-    public $timestamps = false;
-
     /**
      * @var list<string>
      */

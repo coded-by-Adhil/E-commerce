@@ -3,7 +3,12 @@
 use App\Enums\ProductStatus;
 use App\Enums\UserRole;
 use App\Models\Address;
+use App\Models\Cart;
+use App\Models\CartItem;
 use App\Models\Category;
+use App\Models\Order;
+use App\Models\OrderItem;
+use App\Models\OrderStatusHistory;
 use App\Models\Product;
 use App\Models\ProductImage;
 use App\Models\User;
@@ -21,6 +26,11 @@ it('creates a valid model from every factory', function (string $model) {
     Product::class,
     Variant::class,
     ProductImage::class,
+    Cart::class,
+    CartItem::class,
+    Order::class,
+    OrderItem::class,
+    OrderStatusHistory::class,
 ]);
 
 it('defaults to the customer role and can make an admin', function () {

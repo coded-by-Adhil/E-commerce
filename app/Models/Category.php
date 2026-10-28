@@ -13,8 +13,6 @@ class Category extends Model
     /** @use HasFactory<CategoryFactory> */
     use HasFactory;
 
-    public $timestamps = false;
-
     /**
      * @var list<string>
      */

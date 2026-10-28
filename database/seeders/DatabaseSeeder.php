@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Category;
 use App\Models\Product;
-use App\Models\ProductImage;
 use App\Models\User;
 use App\Models\Variant;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
@@ -47,8 +46,6 @@ class DatabaseSeeder extends Seeder
             Variant::factory()->count(fake()->numberBetween(2, 3))->create([
                 'product_id' => $product->id,
             ]);
-
-            ProductImage::factory()->create(['product_id' => $product->id]);
         }
     }
 }
