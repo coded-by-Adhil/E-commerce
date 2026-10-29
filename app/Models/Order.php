@@ -66,6 +66,14 @@ class Order extends Model
     }
 
     /**
+     * @return HasMany<Payment, $this>
+     */
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    /**
      * @return HasMany<OrderStatusHistory, $this>
      */
     public function statusHistory(): HasMany
