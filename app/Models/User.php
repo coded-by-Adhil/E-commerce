@@ -11,6 +11,9 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
+/**
+ * @property UserRole $role
+ */
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
@@ -40,7 +43,7 @@ class User extends Authenticatable
     /**
      * Get the attributes that should be cast.
      *
-     * @return array<string, string>
+     * @return array<string, mixed>
      */
     protected function casts(): array
     {
