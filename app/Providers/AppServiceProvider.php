@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use Illuminate\Support\Carbon;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -19,6 +20,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // API dates: ISO 8601 in UTC, no fractional seconds (2026-10-29T09:54:00Z).
+        Carbon::serializeUsing(fn (Carbon $date) => $date->copy()->utc()->format('Y-m-d\TH:i:s\Z'));
     }
 }
