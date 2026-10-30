@@ -144,3 +144,10 @@ it('guards the admin route: 401 guest, 403 customer, 200 admin', function () {
 
     $this->actingAs(User::factory()->admin()->create())->getJson('/api/v1/_test/admin')->assertOk();
 });
+
+it('returns a clear 400, not a 500, when the request is not from the SPA origin', function () {
+    $this->withHeaders(['Referer' => 'http://evil.example'])
+        ->postJson('/api/v1/register', registerPayload())
+        ->assertStatus(400)
+        ->assertJsonPath('code', 'bad_request');
+});

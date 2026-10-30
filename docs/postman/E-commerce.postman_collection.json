@@ -1,0 +1,238 @@
+{
+    "info": {
+        "_postman_id": "b3f1c2a4-5d6e-4f70-8a91-0c2d3e4f5a6b",
+        "name": "E-commerce API",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "1. Get CSRF cookie (run first)",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Origin",
+                        "value": "http://localhost:5173",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Referer",
+                        "value": "http://localhost:5173",
+                        "type": "text"
+                    },
+                    {
+                        "key": "X-XSRF-TOKEN",
+                        "value": "{{xsrf_token}}",
+                        "type": "text"
+                    }
+                ],
+                "url": "{{baseUrl}}/sanctum/csrf-cookie"
+            },
+            "response": [],
+            "event": [
+                {
+                    "listen": "test",
+                    "script": {
+                        "type": "text/javascript",
+                        "exec": [
+                            "let raw;",
+                            "const rc = pm.response.cookies.get(\"XSRF-TOKEN\");",
+                            "if (rc) raw = rc.value || rc;",
+                            "if (!raw) {",
+                            "  const line = pm.response.headers.all().filter(h => h.key.toLowerCase() === \"set-cookie\").map(h => h.value).find(v => v.startsWith(\"XSRF-TOKEN=\"));",
+                            "  if (line) raw = line.split(\";\")[0].substring(\"XSRF-TOKEN=\".length);",
+                            "}",
+                            "if (raw) pm.globals.set(\"xsrf_token\", decodeURIComponent(raw));",
+                            "console.log(\"xsrf_token saved:\", !!raw);"
+                        ]
+                    }
+                }
+            ]
+        },
+        {
+            "name": "2. Register",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Origin",
+                        "value": "http://localhost:5173",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Referer",
+                        "value": "http://localhost:5173",
+                        "type": "text"
+                    },
+                    {
+                        "key": "X-XSRF-TOKEN",
+                        "value": "{{xsrf_token}}",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "url": "{{baseUrl}}/api/v1/register",
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"name\": \"Ada Lovelace\",\n    \"email\": \"ada@gmail.com\",\n    \"password\": \"secret-pass-1\",\n    \"password_confirmation\": \"secret-pass-1\"\n}"
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "3. Login",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Origin",
+                        "value": "http://localhost:5173",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Referer",
+                        "value": "http://localhost:5173",
+                        "type": "text"
+                    },
+                    {
+                        "key": "X-XSRF-TOKEN",
+                        "value": "{{xsrf_token}}",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Content-Type",
+                        "value": "application/json",
+                        "type": "text"
+                    }
+                ],
+                "url": "{{baseUrl}}/api/v1/login",
+                "body": {
+                    "mode": "raw",
+                    "raw": "{\n    \"email\": \"ada@gmail.com\",\n    \"password\": \"secret-pass-1\"\n}"
+                }
+            },
+            "response": []
+        },
+        {
+            "name": "4. Me",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Origin",
+                        "value": "http://localhost:5173",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Referer",
+                        "value": "http://localhost:5173",
+                        "type": "text"
+                    },
+                    {
+                        "key": "X-XSRF-TOKEN",
+                        "value": "{{xsrf_token}}",
+                        "type": "text"
+                    }
+                ],
+                "url": "{{baseUrl}}/api/v1/me"
+            },
+            "response": []
+        },
+        {
+            "name": "5. Logout",
+            "request": {
+                "method": "POST",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Origin",
+                        "value": "http://localhost:5173",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Referer",
+                        "value": "http://localhost:5173",
+                        "type": "text"
+                    },
+                    {
+                        "key": "X-XSRF-TOKEN",
+                        "value": "{{xsrf_token}}",
+                        "type": "text"
+                    }
+                ],
+                "url": "{{baseUrl}}/api/v1/logout"
+            },
+            "response": []
+        },
+        {
+            "name": "Ping",
+            "request": {
+                "method": "GET",
+                "header": [
+                    {
+                        "key": "Accept",
+                        "value": "application/json",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Origin",
+                        "value": "http://localhost:5173",
+                        "type": "text"
+                    },
+                    {
+                        "key": "Referer",
+                        "value": "http://localhost:5173",
+                        "type": "text"
+                    },
+                    {
+                        "key": "X-XSRF-TOKEN",
+                        "value": "{{xsrf_token}}",
+                        "type": "text"
+                    }
+                ],
+                "url": "{{baseUrl}}/api/v1/ping"
+            },
+            "response": []
+        }
+    ],
+    "variable": [
+        {
+            "key": "baseUrl",
+            "value": "http://localhost:8000",
+            "type": "string"
+        },
+        {
+            "key": "xsrf_token",
+            "value": "",
+            "type": "string"
+        }
+    ]
+}
