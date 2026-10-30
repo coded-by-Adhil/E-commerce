@@ -27,6 +27,7 @@ it('registers a customer and logs them in', function () {
         ->assertCreated()
         ->assertJsonPath('data.email', 'ada@example.com')
         ->assertJsonPath('data.role', 'customer')
+        ->assertJsonPath('message', 'Successfully registered.')
         ->assertJsonMissingPath('data.password');
 
     // New request, new user instance (the test app reuses the one created above, which Laravel answers with 201).
@@ -58,6 +59,7 @@ it('validates the register fields', function (array $overrides, string $field) {
 })->with([
     'missing name' => [['name' => ''], 'name'],
     'bad email' => [['email' => 'nope'], 'email'],
+    'email without domain suffix' => [['email' => 'example@gm'], 'email'],
     'short password' => [['password' => 'short', 'password_confirmation' => 'short'], 'password'],
     'unconfirmed password' => [['password_confirmation' => 'different-pass'], 'password'],
 ]);

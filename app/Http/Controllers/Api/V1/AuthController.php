@@ -24,7 +24,10 @@ class AuthController extends Controller
         Auth::guard('web')->login($user);
         $request->session()->regenerate();
 
-        return (new UserResource($user))->response()->setStatusCode(201);
+        return (new UserResource($user))
+            ->additional(['message' => 'Successfully registered.'])
+            ->response()
+            ->setStatusCode(201);
     }
 
     public function login(LoginRequest $request): UserResource
