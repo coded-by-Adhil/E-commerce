@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\V1\AddressController;
 use App\Http\Controllers\Api\V1\AuthController;
 use App\Http\Controllers\Api\V1\PingController;
 use Illuminate\Support\Facades\Route;
@@ -14,5 +15,7 @@ Route::middleware('stateful')->group(function () {
     Route::middleware('auth:sanctum')->group(function () {
         Route::post('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
+
+        Route::apiResource('addresses', AddressController::class);
     });
 });
