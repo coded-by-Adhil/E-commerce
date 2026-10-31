@@ -1,0 +1,7 @@
+# Use this workspace to collaborate
+workspace:
+  id: 60e8d55a-312d-4a4c-8f92-f87e1c3b8331
+
+localResources:
+  collections:
+    - ../docs/postman/E-commerce API

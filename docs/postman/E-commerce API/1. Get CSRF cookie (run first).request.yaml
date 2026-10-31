@@ -1,0 +1,22 @@
+$kind: http-request
+url: "{{baseUrl}}/sanctum/csrf-cookie"
+method: GET
+headers:
+  Accept: application/json
+  Origin: http://localhost:5173
+  Referer: http://localhost:5173
+  X-XSRF-TOKEN: "{{xsrf_token}}"
+scripts:
+  - type: afterResponse
+    code: |-
+      let raw;
+      const rc = pm.response.cookies.get("XSRF-TOKEN");
+      if (rc) raw = rc.value || rc;
+      if (!raw) {
+        const line = pm.response.headers.all().filter(h => h.key.toLowerCase() === "set-cookie").map(h => h.value).find(v => v.startsWith("XSRF-TOKEN="));
+        if (line) raw = line.split(";")[0].substring("XSRF-TOKEN=".length);
+      }
+      if (raw) pm.globals.set("xsrf_token", decodeURIComponent(raw));
+      console.log("xsrf_token saved:", !!raw);
+    language: text/javascript
+order: 1000

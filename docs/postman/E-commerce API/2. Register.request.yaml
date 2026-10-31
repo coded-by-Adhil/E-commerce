@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/register"
+method: POST
+headers:
+  Accept: application/json
+  Origin: http://localhost:5173
+  Referer: http://localhost:5173
+  X-XSRF-TOKEN: "{{xsrf_token}}"
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+        "name": "Ada Lovelace",
+        "email": "ada@gmail.com",
+        "password": "secret-pass-1",
+        "password_confirmation": "secret-pass-1"
+    }
+order: 2000
