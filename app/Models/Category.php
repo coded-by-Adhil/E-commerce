@@ -23,6 +23,34 @@ class Category extends Model
     ];
 
     /**
+     * Ids of the category with this slug and all its descendants, from one
+     * query. Empty for an unknown slug.
+     *
+     * @return list<int>
+     */
+    public static function idsWithDescendants(string $slug): array
+    {
+        $childrenOf = self::query()->get(['id', 'parent_id', 'slug'])->groupBy('parent_id');
+
+        $root = $childrenOf->flatten()->firstWhere('slug', $slug);
+        if ($root === null) {
+            return [];
+        }
+
+        $ids = [];
+        $queue = [$root->id];
+        while ($queue !== []) {
+            $id = array_pop($queue);
+            $ids[] = $id;
+            foreach ($childrenOf->get($id, collect()) as $child) {
+                $queue[] = $child->id;
+            }
+        }
+
+        return $ids;
+    }
+
+    /**
      * @return BelongsTo<Category, $this>
      */
     public function parent(): BelongsTo
