@@ -1,0 +1,194 @@
+{
+  "info": {
+    "name": "E-commerce T3.1 Cart",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "variant_id", "value": "1" },
+    { "key": "variant_id_2", "value": "2" },
+    { "key": "draft_variant_id", "value": "set-a-draft-product-variant-id" }
+  ],
+  "item": [
+    {
+      "name": "01 Guest GET cart returns 401 (run before login)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" }
+        ],
+        "url": "{{base_url}}/api/v1/cart"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 401', function () { pm.response.to.have.status(401); });"
+      ] } }]
+    },
+    {
+      "name": "02 Guest POST item returns 401 (run before login)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"variant_id\": {{variant_id}}, \"quantity\": 1}" },
+        "url": "{{base_url}}/api/v1/cart/items"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 401', function () { pm.response.to.have.status(401); });"
+      ] } }]
+    },
+    {
+      "name": "03 Login (setup)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"email\": \"customer@example.com\", \"password\": \"password\"}" },
+        "url": "{{base_url}}/api/v1/login"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+      ] } }]
+    },
+    {
+      "name": "04 GET cart creates an empty cart",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" }
+        ],
+        "url": "{{base_url}}/api/v1/cart"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('Shape is items, subtotal, currency, item_count', function () { pm.expect(pm.response.json().data).to.have.keys(['items', 'subtotal', 'currency', 'item_count']); });"
+      ] } }]
+    },
+    {
+      "name": "05 Add item",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"variant_id\": {{variant_id}}, \"quantity\": 2}" },
+        "url": "{{base_url}}/api/v1/cart/items"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('Line total is price x quantity', function () { const i = pm.response.json().data.items[0]; pm.expect(i.line_total).to.eql(i.unit_price * i.quantity); });"
+      ] } }]
+    },
+    {
+      "name": "06 Add the same variant again (one line, summed quantity)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"variant_id\": {{variant_id}}, \"quantity\": 1}" },
+        "url": "{{base_url}}/api/v1/cart/items"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('Still one line for this variant', function () { const n = pm.response.json().data.items.filter(function (i) { return String(i.variant.id) === pm.collectionVariables.get('variant_id'); }).length; pm.expect(n).to.eql(1); });"
+      ] } }]
+    },
+    {
+      "name": "07 Client-sent cart_id, user_id and price are ignored",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"variant_id\": {{variant_id}}, \"quantity\": 1, \"cart_id\": 999, \"user_id\": 999, \"price\": 1}" },
+        "url": "{{base_url}}/api/v1/cart/items"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('Price was not taken from the client', function () { pm.expect(pm.response.json().data.items[0].unit_price).to.be.above(1); });"
+      ] } }]
+    },
+    {
+      "name": "08 Quantity above stock returns 422",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"variant_id\": {{variant_id}}, \"quantity\": 99}" },
+        "url": "{{base_url}}/api/v1/cart/items"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 422', function () { pm.response.to.have.status(422); });",
+        "pm.test('Error is on quantity', function () { pm.expect(pm.response.json().errors).to.have.property('quantity'); });"
+      ] } }]
+    },
+    {
+      "name": "09 Variant of a draft or archived product returns 422",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"variant_id\": {{draft_variant_id}}, \"quantity\": 1}" },
+        "url": "{{base_url}}/api/v1/cart/items"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 422', function () { pm.response.to.have.status(422); });"
+      ] } }]
+    },
+    {
+      "name": "10 Second line: line totals and subtotal are correct",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"variant_id\": {{variant_id_2}}, \"quantity\": 1}" },
+        "url": "{{base_url}}/api/v1/cart/items"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('Subtotal is the sum of the line totals', function () { const d = pm.response.json().data; const sum = d.items.reduce(function (t, i) { return t + i.line_total; }, 0); pm.expect(d.subtotal).to.eql(sum); });"
+      ] } }]
+    }
+  ]
+}

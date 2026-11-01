@@ -3,4 +3,11 @@ url: "{{baseUrl}}/api/v1/products/{{product_slug}}"
 method: GET
 headers:
   Accept: application/json
+scripts:
+  - type: afterResponse
+    code: |-
+      const v = pm.response.json()?.data?.variants?.[0];
+      if (v) pm.globals.set("variant_id", String(v.id));
+      console.log("variant_id:", v?.id);
+    language: text/javascript
 order: 8110

@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/cart/items"
+method: POST
+headers:
+  Accept: application/json
+  Origin: http://localhost:5173
+  Referer: http://localhost:5173
+  X-Dev-Csrf-Bypass: postman-dev-secret
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "variant_id": {{variant_id}},
+      "quantity": 99
+    }
+order: 9120
