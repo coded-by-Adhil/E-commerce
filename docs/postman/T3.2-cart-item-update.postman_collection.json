@@ -1,0 +1,247 @@
+{
+  "info": {
+    "name": "E-commerce T3.2 Update or remove cart item",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "cart_item_id", "value": "1" },
+    { "key": "draft_cart_item_id", "value": "set-a-line-of-a-draft-product" },
+    { "key": "other_user_cart_item_id", "value": "set-a-line-of-another-user" }
+  ],
+  "item": [
+    {
+      "name": "01 Guest PATCH returns 401 (run before login)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"quantity\": 1}" },
+        "url": "{{base_url}}/api/v1/cart/items/{{cart_item_id}}"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 401', function () { pm.response.to.have.status(401); });"
+      ] } }]
+    },
+    {
+      "name": "02 Guest DELETE returns 401 (run before login)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "url": "{{base_url}}/api/v1/cart/items/{{cart_item_id}}"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 401', function () { pm.response.to.have.status(401); });"
+      ] } }]
+    },
+    {
+      "name": "03 Login (setup)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"email\": \"customer@example.com\", \"password\": \"password\"}" },
+        "url": "{{base_url}}/api/v1/login"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+      ] } }]
+    },
+    {
+      "name": "04 GET cart (saves cart_item_id)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" }
+        ],
+        "url": "{{base_url}}/api/v1/cart"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+        "const first = pm.response.json().data.items[0];",
+        "if (first) { pm.collectionVariables.set('cart_item_id', String(first.id)); }",
+        "pm.test('Cart has a line to work on (add one with T3.1 first)', function () { pm.expect(first).to.not.be.undefined; });"
+      ] } }]
+    },
+    {
+      "name": "05 PATCH sets the quantity to 5",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"quantity\": 5}" },
+        "url": "{{base_url}}/api/v1/cart/items/{{cart_item_id}}"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('Quantity is 5 and line_total recalculated', function () { const i = pm.response.json().data.items.find(function (x) { return String(x.id) === pm.collectionVariables.get('cart_item_id'); }); pm.expect(i.quantity).to.eql(5); pm.expect(i.line_total).to.eql(i.unit_price * 5); });"
+      ] } }]
+    },
+    {
+      "name": "06 PATCH quantity above stock returns 422",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"quantity\": 99}" },
+        "url": "{{base_url}}/api/v1/cart/items/{{cart_item_id}}"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 422', function () { pm.response.to.have.status(422); });",
+        "pm.test('Error is on quantity', function () { pm.expect(pm.response.json().errors).to.have.property('quantity'); });"
+      ] } }]
+    },
+    {
+      "name": "07 PATCH quantity 0 returns 422",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"quantity\": 0}" },
+        "url": "{{base_url}}/api/v1/cart/items/{{cart_item_id}}"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 422', function () { pm.response.to.have.status(422); });"
+      ] } }]
+    },
+    {
+      "name": "08 PATCH quantity 100 returns 422",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"quantity\": 100}" },
+        "url": "{{base_url}}/api/v1/cart/items/{{cart_item_id}}"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 422', function () { pm.response.to.have.status(422); });"
+      ] } }]
+    },
+    {
+      "name": "09 PATCH quantity \"abc\" returns 422",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"quantity\": \"abc\"}" },
+        "url": "{{base_url}}/api/v1/cart/items/{{cart_item_id}}"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 422', function () { pm.response.to.have.status(422); });"
+      ] } }]
+    },
+    {
+      "name": "10 PATCH a line of a draft or archived product returns 422",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"quantity\": 1}" },
+        "url": "{{base_url}}/api/v1/cart/items/{{draft_cart_item_id}}"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 422', function () { pm.response.to.have.status(422); });"
+      ] } }]
+    },
+    {
+      "name": "11 PATCH or DELETE another user's line returns 404",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"quantity\": 5, \"cart_id\": 1}" },
+        "url": "{{base_url}}/api/v1/cart/items/{{other_user_cart_item_id}}"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 404', function () { pm.response.to.have.status(404); });",
+        "pm.test('Conventions error shape', function () { pm.expect(pm.response.json().code).to.eql('not_found'); });"
+      ] } }]
+    },
+    {
+      "name": "12 DELETE removes the line",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "url": "{{base_url}}/api/v1/cart/items/{{cart_item_id}}"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('Line is gone and cart shape is intact', function () { const d = pm.response.json().data; pm.expect(d).to.have.keys(['items', 'subtotal', 'currency', 'item_count']); pm.expect(d.items.map(function (x) { return String(x.id); })).to.not.include(pm.collectionVariables.get('cart_item_id')); });"
+      ] } }]
+    },
+    {
+      "name": "13 DELETE the last line gives an empty cart (run 12 again after re-adding, or delete each line)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "url": "{{base_url}}/api/v1/cart/items/{{cart_item_id}}"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('Empty cart when it was the last line', function () { const d = pm.response.json().data; if (d.items.length === 0) { pm.expect(d.subtotal).to.eql(0); } });"
+      ] } }]
+    }
+  ]
+}

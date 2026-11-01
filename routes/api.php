@@ -27,5 +27,7 @@ Route::middleware('stateful')->group(function () {
 
         Route::get('/cart', [CartController::class, 'show']);
         Route::post('/cart/items', [CartItemController::class, 'store']);
+        Route::patch('/cart/items/{item}', [CartItemController::class, 'update']);
+        Route::delete('/cart/items/{item}', [CartItemController::class, 'destroy']);
     });
 });

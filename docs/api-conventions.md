@@ -13,7 +13,7 @@ Every endpoint follows these rules. A new endpoint that breaks one is a bug.
 |---|---|
 | 200 | Read, or update that returns the resource |
 | 201 | Created (return the new resource) |
-| 204 | Deleted (empty body) |
+| 204 | Deleted (empty body). Exception: `DELETE /cart/items/{item}` returns 200 with the full updated cart |
 | 401 | Not logged in |
 | 403 | Logged in but not allowed |
 | 404 | Not found (also use it for resources the user must not know exist) |

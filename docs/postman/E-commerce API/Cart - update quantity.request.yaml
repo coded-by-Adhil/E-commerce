@@ -1,0 +1,16 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/cart/items/{{cart_item_id}}"
+method: PATCH
+headers:
+  Accept: application/json
+  Origin: http://localhost:5173
+  Referer: http://localhost:5173
+  X-Dev-Csrf-Bypass: postman-dev-secret
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "quantity": 5
+    }
+order: 9130
