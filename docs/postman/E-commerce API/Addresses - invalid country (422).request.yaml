@@ -1,0 +1,19 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/addresses"
+method: POST
+headers:
+  Accept: application/json
+  Origin: http://localhost:5173
+  Referer: http://localhost:5173
+  X-Dev-Csrf-Bypass: postman-dev-secret
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "line1": "1 Main St",
+      "city": "Springfield",
+      "postal_code": "12345",
+      "country": "USA"
+    }
+order: 9030

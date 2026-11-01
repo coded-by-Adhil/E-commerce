@@ -5,5 +5,5 @@ headers:
   Accept: application/json
   Origin: http://localhost:5173
   Referer: http://localhost:5173
-  X-XSRF-TOKEN: "{{xsrf_token}}"
+  X-Dev-Csrf-Bypass: postman-dev-secret
 order: 5000

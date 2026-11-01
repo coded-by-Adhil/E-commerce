@@ -1,0 +1,20 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/addresses"
+method: POST
+headers:
+  Accept: application/json
+  Origin: http://localhost:5173
+  Referer: http://localhost:5173
+  X-Dev-Csrf-Bypass: postman-dev-secret
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "line1": "3 Pine Rd",
+      "city": "Capital City",
+      "postal_code": "99999",
+      "country": "GB",
+      "is_default": true
+    }
+order: 9020

@@ -1,0 +1,8 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/addresses/{{address_id}}"
+method: GET
+headers:
+  Accept: application/json
+  Origin: http://localhost:5173
+  Referer: http://localhost:5173
+order: 9040

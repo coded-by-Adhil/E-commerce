@@ -5,5 +5,4 @@ headers:
   Accept: application/json
   Origin: http://localhost:5173
   Referer: http://localhost:5173
-  X-XSRF-TOKEN: "{{xsrf_token}}"
 order: 4000

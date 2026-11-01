@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/products/{{product_slug}}"
+method: GET
+headers:
+  Accept: application/json
+order: 8110

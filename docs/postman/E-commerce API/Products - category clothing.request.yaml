@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/products?category=clothing"
+method: GET
+headers:
+  Accept: application/json
+order: 8010

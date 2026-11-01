@@ -1,0 +1,13 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/products"
+method: GET
+headers:
+  Accept: application/json
+scripts:
+  - type: afterResponse
+    code: |-
+      const first = pm.response.json()?.data?.[0];
+      if (first) pm.globals.set("product_slug", first.slug);
+      console.log("product_slug:", first?.slug);
+    language: text/javascript
+order: 8000

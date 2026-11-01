@@ -5,13 +5,13 @@ headers:
   Accept: application/json
   Origin: http://localhost:5173
   Referer: http://localhost:5173
-  X-XSRF-TOKEN: "{{xsrf_token}}"
+  X-Dev-Csrf-Bypass: postman-dev-secret
   Content-Type: application/json
 body:
   type: text
   content: |-
     {
-        "email": "ada@gmail.com",
-        "password": "secret-pass-1"
+      "email": "customer@example.com",
+      "password": "password"
     }
 order: 3000

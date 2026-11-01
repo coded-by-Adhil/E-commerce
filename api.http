@@ -1,0 +1,188 @@
+# API requests for the VS Code "REST Client" extension (humao.rest-client).
+# Click "Send Request" above any request. Run "Login" first for the logged-in ones.
+# Change @host / @origin here and every request follows. The CSRF bypass secret
+# is read from DEV_CSRF_BYPASS_TOKEN in .env (local environment only).
+#
+# Seed users (php artisan migrate:fresh --seed):
+#   customer@example.com / password      admin@example.com / password
+
+@host = http://localhost:8000/api/v1
+@origin = http://localhost:5173
+@bypass = {{$dotenv DEV_CSRF_BYPASS_TOKEN}}
+
+### ---------------------------------------------------------------- Public
+
+### Ping
+GET {{host}}/ping
+Accept: application/json
+
+### Categories (tree)
+GET {{host}}/categories
+Accept: application/json
+
+### Products: default list
+GET {{host}}/products
+Accept: application/json
+
+### Products: filter by category (includes children)
+GET {{host}}/products?category=clothing
+Accept: application/json
+
+### Products: unknown category (empty list)
+GET {{host}}/products?category=nope
+Accept: application/json
+
+### Products: search by name
+GET {{host}}/products?q=a
+Accept: application/json
+
+### Products: sort price ascending (price | -price | name | newest)
+GET {{host}}/products?sort=price
+Accept: application/json
+
+### Products: page 2, 3 per page
+GET {{host}}/products?per_page=3&page=2
+Accept: application/json
+
+### Products: per_page is capped at 50
+GET {{host}}/products?per_page=1000
+Accept: application/json
+
+### Products: invalid sort (expect 422)
+GET {{host}}/products?sort=popularity
+Accept: application/json
+
+### ---------------------------------------------------------------- Auth
+
+### Register
+POST {{host}}/register
+Accept: application/json
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}
+X-Dev-Csrf-Bypass: {{bypass}}
+
+{
+  "name": "Ada",
+  "email": "ada@gmail.com",
+  "password": "secret-pass-1",
+  "password_confirmation": "secret-pass-1"
+}
+
+### Login (run this first)
+POST {{host}}/login
+Accept: application/json
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}
+X-Dev-Csrf-Bypass: {{bypass}}
+
+{
+  "email": "customer@example.com",
+  "password": "password"
+}
+
+### Me
+GET {{host}}/me
+Accept: application/json
+Origin: {{origin}}
+Referer: {{origin}}
+
+### Logout
+POST {{host}}/logout
+Accept: application/json
+Origin: {{origin}}
+Referer: {{origin}}
+X-Dev-Csrf-Bypass: {{bypass}}
+
+### ---------------------------------------------------------------- Addresses (login first)
+
+### Addresses: list
+GET {{host}}/addresses
+Accept: application/json
+Origin: {{origin}}
+Referer: {{origin}}
+
+### Addresses: create (the first one is always the default)
+# @name createAddress
+POST {{host}}/addresses
+Accept: application/json
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}
+X-Dev-Csrf-Bypass: {{bypass}}
+
+{
+  "line1": "1 Main St",
+  "line2": "Apt 4",
+  "city": "Springfield",
+  "region": "IL",
+  "postal_code": "12345",
+  "country": "us"
+}
+
+### Addresses: create and make default
+POST {{host}}/addresses
+Accept: application/json
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}
+X-Dev-Csrf-Bypass: {{bypass}}
+
+{
+  "line1": "3 Pine Rd",
+  "city": "Capital City",
+  "postal_code": "99999",
+  "country": "GB",
+  "is_default": true
+}
+
+### Addresses: invalid country (expect 422)
+POST {{host}}/addresses
+Accept: application/json
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}
+X-Dev-Csrf-Bypass: {{bypass}}
+
+{
+  "line1": "1 Main St",
+  "city": "Springfield",
+  "postal_code": "12345",
+  "country": "USA"
+}
+
+### Addresses: show (uses the id from "create" above)
+GET {{host}}/addresses/{{createAddress.response.body.data.id}}
+Accept: application/json
+Origin: {{origin}}
+Referer: {{origin}}
+
+### Addresses: update (PUT needs all required fields)
+PUT {{host}}/addresses/{{createAddress.response.body.data.id}}
+Accept: application/json
+Content-Type: application/json
+Origin: {{origin}}
+Referer: {{origin}}
+X-Dev-Csrf-Bypass: {{bypass}}
+
+{
+  "line1": "1 Main St",
+  "city": "New City",
+  "postal_code": "12345",
+  "country": "US",
+  "is_default": true
+}
+
+### Addresses: delete (expect 204)
+DELETE {{host}}/addresses/{{createAddress.response.body.data.id}}
+Accept: application/json
+Origin: {{origin}}
+Referer: {{origin}}
+X-Dev-Csrf-Bypass: {{bypass}}
+
+### Addresses: unknown id (expect 404)
+GET {{host}}/addresses/9999
+Accept: application/json
+Origin: {{origin}}
+Referer: {{origin}}

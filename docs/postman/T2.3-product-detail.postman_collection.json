@@ -1,0 +1,58 @@
+{
+  "info": {
+    "name": "E-commerce T2.3 Product detail",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "active_slug", "value": "set-an-active-product-slug" },
+    { "key": "draft_slug", "value": "set-a-draft-product-slug" },
+    { "key": "archived_slug", "value": "set-an-archived-product-slug" },
+    { "key": "deleted_slug", "value": "set-a-soft-deleted-product-slug" }
+  ],
+  "item": [
+    {
+      "name": "Active product returns 200",
+      "request": { "method": "GET", "url": "{{base_url}}/api/v1/products/{{active_slug}}" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('Variants and images present, no stock or path', function () {",
+        "  const d = pm.response.json().data;",
+        "  pm.expect(d.variants).to.be.an('array');",
+        "  pm.expect(d.images).to.be.an('array');",
+        "  d.variants.forEach(function (v) { pm.expect(v).to.not.have.property('stock'); });",
+        "  d.images.forEach(function (i) { pm.expect(i).to.not.have.property('path'); });",
+        "});"
+      ] } }]
+    },
+    {
+      "name": "Draft product returns 404",
+      "request": { "method": "GET", "url": "{{base_url}}/api/v1/products/{{draft_slug}}" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 404', function () { pm.response.to.have.status(404); });"
+      ] } }]
+    },
+    {
+      "name": "Archived product returns 404",
+      "request": { "method": "GET", "url": "{{base_url}}/api/v1/products/{{archived_slug}}" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 404', function () { pm.response.to.have.status(404); });"
+      ] } }]
+    },
+    {
+      "name": "Soft-deleted product returns 404",
+      "request": { "method": "GET", "url": "{{base_url}}/api/v1/products/{{deleted_slug}}" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 404', function () { pm.response.to.have.status(404); });"
+      ] } }]
+    },
+    {
+      "name": "Unknown slug returns 404",
+      "request": { "method": "GET", "url": "{{base_url}}/api/v1/products/does-not-exist" },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 404', function () { pm.response.to.have.status(404); });",
+        "pm.test('Conventions error shape', function () { pm.expect(pm.response.json().code).to.eql('not_found'); });"
+      ] } }]
+    }
+  ]
+}

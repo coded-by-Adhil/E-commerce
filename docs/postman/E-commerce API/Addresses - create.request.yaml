@@ -1,0 +1,28 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/addresses"
+method: POST
+headers:
+  Accept: application/json
+  Origin: http://localhost:5173
+  Referer: http://localhost:5173
+  X-Dev-Csrf-Bypass: postman-dev-secret
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "line1": "1 Main St",
+      "line2": "Apt 4",
+      "city": "Springfield",
+      "region": "IL",
+      "postal_code": "12345",
+      "country": "us"
+    }
+scripts:
+  - type: afterResponse
+    code: |-
+      const id = pm.response.json()?.data?.id;
+      if (id) pm.globals.set("address_id", String(id));
+      console.log("address_id:", id);
+    language: text/javascript
+order: 9010

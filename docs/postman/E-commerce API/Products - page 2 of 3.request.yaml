@@ -1,0 +1,6 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/products?per_page=3&page=2"
+method: GET
+headers:
+  Accept: application/json
+order: 8080

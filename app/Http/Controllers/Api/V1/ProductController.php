@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Product\ProductIndexRequest;
 use App\Http\Resources\ProductCollection;
+use App\Http\Resources\ProductDetailResource;
 use App\Models\Category;
 use App\Models\Product;
 
@@ -34,5 +35,20 @@ class ProductController extends Controller
         };
 
         return new ProductCollection($query->paginate($request->perPage()));
+    }
+
+    public function show(string $slug): ProductDetailResource
+    {
+        $product = Product::query()
+            ->active()
+            ->with([
+                'category:id,name,slug',
+                'variants' => fn ($query) => $query->orderBy('id'),
+                'images' => fn ($query) => $query->orderBy('id'),
+            ])
+            ->where('slug', $slug)
+            ->firstOrFail();
+
+        return new ProductDetailResource($product);
     }
 }
