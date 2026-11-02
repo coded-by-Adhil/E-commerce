@@ -1,0 +1,17 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/checkout"
+method: POST
+headers:
+  Accept: application/json
+  Origin: http://localhost:5173
+  Referer: http://localhost:5173
+  X-Dev-Csrf-Bypass: postman-dev-secret
+  Idempotency-Key: demo-key-1
+  Content-Type: application/json
+body:
+  type: text
+  content: |-
+    {
+      "shipping_address_id": {{address_id}}
+    }
+order: 9200

@@ -1,0 +1,155 @@
+{
+  "info": {
+    "name": "E-commerce T4 Checkout",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "address_id", "value": "1" },
+    { "key": "other_address_id", "value": "set-an-address-id-of-another-user" },
+    { "key": "idem_key", "value": "" },
+    { "key": "order_number", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "01 Guest returns 401 (run before login)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Idempotency-Key", "value": "guest-check" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"shipping_address_id\": {{address_id}}}" },
+        "url": "{{base_url}}/api/v1/checkout"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 401', function () { pm.response.to.have.status(401); });"
+      ] } }]
+    },
+    {
+      "name": "02 Login (setup; then add items to the cart with the T3 requests)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"email\": \"customer@example.com\", \"password\": \"password\"}" },
+        "url": "{{base_url}}/api/v1/login"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+      ] } }]
+    },
+    {
+      "name": "03 Missing Idempotency-Key returns 422",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"shipping_address_id\": {{address_id}}}" },
+        "url": "{{base_url}}/api/v1/checkout"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 422', function () { pm.response.to.have.status(422); });",
+        "pm.test('Error is on idempotency_key', function () { pm.expect(pm.response.json().errors).to.have.property('idempotency_key'); });"
+      ] } }]
+    },
+    {
+      "name": "04 Checkout succeeds (201)",
+      "event": [
+        { "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
+          "pm.collectionVariables.set('idem_key', pm.variables.replaceIn('{{$guid}}'));"
+        ] } },
+        { "listen": "test", "script": { "type": "text/javascript", "exec": [
+          "pm.test('Status is 201', function () { pm.response.to.have.status(201); });",
+          "pm.test('Order is pending with consistent totals', function () { const d = pm.response.json().data; pm.expect(d.status).to.eql('pending'); pm.expect(d.number).to.have.lengthOf(26); pm.expect(d.grand_total).to.eql(d.subtotal + d.shipping_total); pm.collectionVariables.set('order_number', d.number); });"
+        ] } }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Idempotency-Key", "value": "{{idem_key}}" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"shipping_address_id\": {{address_id}}}" },
+        "url": "{{base_url}}/api/v1/checkout"
+      }
+    },
+    {
+      "name": "05 Replay the same key returns 200 and the same order",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Idempotency-Key", "value": "{{idem_key}}" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"shipping_address_id\": {{address_id}}}" },
+        "url": "{{base_url}}/api/v1/checkout"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('Same order number', function () { pm.expect(pm.response.json().data.number).to.eql(pm.collectionVariables.get('order_number')); });"
+      ] } }]
+    },
+    {
+      "name": "06 Empty cart returns 422 (cart is empty after request 04)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Idempotency-Key", "value": "empty-cart-check" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"shipping_address_id\": {{address_id}}}" },
+        "url": "{{base_url}}/api/v1/checkout"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 422', function () { pm.response.to.have.status(422); });"
+      ] } }]
+    },
+    {
+      "name": "07 Another user's address returns 422",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Idempotency-Key", "value": "foreign-address-check" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"shipping_address_id\": {{other_address_id}}}" },
+        "url": "{{base_url}}/api/v1/checkout"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 422', function () { pm.response.to.have.status(422); });",
+        "pm.test('Error is on shipping_address_id', function () { pm.expect(pm.response.json().errors).to.have.property('shipping_address_id'); });"
+      ] } }]
+    }
+  ]
+}

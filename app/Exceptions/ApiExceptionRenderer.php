@@ -41,6 +41,10 @@ class ApiExceptionRenderer
             return $this->respond(401, 'unauthenticated', 'Unauthenticated.');
         }
 
+        if ($e instanceof ApiHttpException) {
+            return $this->respond($e->getStatusCode(), $e->apiCode(), $e->getMessage(), $e->errors());
+        }
+
         if ($e instanceof HttpExceptionInterface) {
             $status = $e->getStatusCode();
 
@@ -75,7 +79,7 @@ class ApiExceptionRenderer
     }
 
     /**
-     * @param  array<string, array<string>>  $errors
+     * @param  array<string, array<int, int|string>>  $errors
      * @param  array<string, string>  $headers
      */
     private function respond(int $status, string $code, string $message, array $errors = [], array $headers = []): JsonResponse

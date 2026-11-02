@@ -22,7 +22,9 @@ scripts:
   - type: afterResponse
     code: |-
       const id = pm.response.json()?.data?.id;
-      if (id) pm.globals.set("address_id", String(id));
+      if (id) {
+        pm.globals.set("address_id", String(id));
+      }
       console.log("address_id:", id);
     language: text/javascript
 order: 9010

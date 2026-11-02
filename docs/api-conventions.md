@@ -46,6 +46,7 @@ One shape for every error, produced only by `App\Exceptions\ApiExceptionRenderer
 | 404 | `not_found` |
 | 405 | `method_not_allowed` |
 | 409 | `conflict` |
+| 409 | `INSUFFICIENT_STOCK` (checkout; `errors.variant_ids` lists the variants) |
 | 419 | `csrf_token_mismatch` |
 | 422 | `validation_failed` |
 | 429 | `too_many_requests` |
