@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\ConcurrencyTestCase;
 use Tests\TestCase;
 
 /*
@@ -17,6 +18,10 @@ use Tests\TestCase;
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
     ->in('Feature');
+
+// Parallel-process tests need a shared MySQL database, so they do not use RefreshDatabase.
+pest()->extend(ConcurrencyTestCase::class)
+    ->in('Concurrency');
 
 /*
 |--------------------------------------------------------------------------

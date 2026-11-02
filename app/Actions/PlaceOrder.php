@@ -32,7 +32,8 @@ class PlaceOrder
         }
 
         try {
-            return DB::transaction(fn () => $this->place($user, $idempotencyKey, $shipping, $billing));
+            // Retries (3 attempts) if MySQL picks this transaction as a deadlock victim.
+            return DB::transaction(fn () => $this->place($user, $idempotencyKey, $shipping, $billing), attempts: 3);
         } catch (UniqueConstraintViolationException $e) {
             // A concurrent request with the same key won the race (D5): return its order.
             $order = $this->existing($user, $idempotencyKey);
@@ -50,7 +51,9 @@ class PlaceOrder
         // Lock the user's cart: a double submit waits here, then finds the first order below.
         $cart = Cart::query()->where('user_id', $user->id)->lockForUpdate()->first();
 
-        if (($existing = $this->existing($user, $key, lock: true)) !== null) {
+        // Plain read, not FOR UPDATE: locking a row that does not exist takes a gap lock on the
+        // unique index, and two buyers' gap locks then deadlock against each other's INSERT.
+        if (($existing = $this->existing($user, $key)) !== null) {
             return $existing;
         }
 
@@ -143,15 +146,13 @@ class PlaceOrder
      *
      * @phpstan-impure
      */
-    private function existing(User $user, string $key, bool $lock = false): ?Order
+    private function existing(User $user, string $key): ?Order
     {
-        $query = Order::query()->where('user_id', $user->id)->where('idempotency_key', $key);
-
-        if ($lock) {
-            $query->lockForUpdate();
-        }
-
-        return $query->with('items')->first();
+        return Order::query()
+            ->where('user_id', $user->id)
+            ->where('idempotency_key', $key)
+            ->with('items')
+            ->first();
     }
 
     /**
