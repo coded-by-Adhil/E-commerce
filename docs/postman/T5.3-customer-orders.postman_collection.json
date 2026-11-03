@@ -1,0 +1,190 @@
+{
+  "info": {
+    "name": "E-commerce T5.3 Customer orders",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8000" },
+    { "key": "order_number", "value": "" },
+    { "key": "other_user_order_number", "value": "set-an-order-number-of-another-user" },
+    { "key": "numeric_order_id", "value": "1" }
+  ],
+  "item": [
+    {
+      "name": "01 Guest GET orders returns 401 (run before login)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" }
+        ],
+        "url": "{{base_url}}/api/v1/orders"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 401', function () { pm.response.to.have.status(401); });"
+      ] } }]
+    },
+    {
+      "name": "02 Guest GET order returns 401 (run before login)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" }
+        ],
+        "url": "{{base_url}}/api/v1/orders/01ARZ3NDEKTSV4RRFFQ69G5FAV"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 401', function () { pm.response.to.have.status(401); });"
+      ] } }]
+    },
+    {
+      "name": "03 Login (setup; place an order first with the checkout requests)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" },
+          { "key": "X-Dev-Csrf-Bypass", "value": "postman-dev-secret" }
+        ],
+        "body": { "mode": "raw", "raw": "{\"email\": \"customer@example.com\", \"password\": \"password\"}" },
+        "url": "{{base_url}}/api/v1/login"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', function () { pm.response.to.have.status(200); });"
+      ] } }]
+    },
+    {
+      "name": "04 List orders (saves order_number)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" }
+        ],
+        "url": "{{base_url}}/api/v1/orders"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('Has data, links, meta', function () { pm.expect(pm.response.json()).to.have.keys(['data', 'links', 'meta']); });",
+        "const first = pm.response.json().data[0];",
+        "if (first) { pm.collectionVariables.set('order_number', first.number); }",
+        "pm.test('There is an order to open (place one with checkout first)', function () { pm.expect(first).to.not.be.undefined; });"
+      ] } }]
+    },
+    {
+      "name": "05 List orders filtered by status=paid",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" }
+        ],
+        "url": "{{base_url}}/api/v1/orders?status=paid"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('Only paid orders', function () { pm.response.json().data.forEach(function (o) { pm.expect(o.status).to.eql('paid'); }); });"
+      ] } }]
+    },
+    {
+      "name": "06 Invalid status returns 422",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" }
+        ],
+        "url": "{{base_url}}/api/v1/orders?status=shipping"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 422', function () { pm.response.to.have.status(422); });"
+      ] } }]
+    },
+    {
+      "name": "07 per_page=1000 is capped at 50",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" }
+        ],
+        "url": "{{base_url}}/api/v1/orders?per_page=1000"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('per_page capped at 50', function () { pm.expect(pm.response.json().meta.per_page).to.eql(50); });"
+      ] } }]
+    },
+    {
+      "name": "08 Order detail",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" }
+        ],
+        "url": "{{base_url}}/api/v1/orders/{{order_number}}"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 200', function () { pm.response.to.have.status(200); });",
+        "pm.test('Detail has items, history and payment, and no hidden fields', function () { const body = pm.response.text(); const d = pm.response.json().data; pm.expect(d).to.have.property('items'); pm.expect(d).to.have.property('status_history'); pm.expect(d).to.have.property('payment'); pm.expect(body).to.not.include('provider_ref'); pm.expect(body).to.not.include('actor_id'); });"
+      ] } }]
+    },
+    {
+      "name": "09 Unknown order number returns 404",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" }
+        ],
+        "url": "{{base_url}}/api/v1/orders/01ARZ3NDEKTSV4RRFFQ69G5FAV"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 404', function () { pm.response.to.have.status(404); });",
+        "pm.test('Conventions error shape', function () { pm.expect(pm.response.json().code).to.eql('not_found'); });"
+      ] } }]
+    },
+    {
+      "name": "10 Numeric id returns 404",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" }
+        ],
+        "url": "{{base_url}}/api/v1/orders/{{numeric_order_id}}"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 404', function () { pm.response.to.have.status(404); });"
+      ] } }]
+    },
+    {
+      "name": "11 Another user's order returns 404",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Accept", "value": "application/json" },
+          { "key": "Origin", "value": "http://localhost:5173" },
+          { "key": "Referer", "value": "http://localhost:5173" }
+        ],
+        "url": "{{base_url}}/api/v1/orders/{{other_user_order_number}}"
+      },
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Status is 404', function () { pm.response.to.have.status(404); });"
+      ] } }]
+    }
+  ]
+}

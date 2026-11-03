@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\V1\CartController;
 use App\Http\Controllers\Api\V1\CartItemController;
 use App\Http\Controllers\Api\V1\CategoryController;
 use App\Http\Controllers\Api\V1\CheckoutController;
+use App\Http\Controllers\Api\V1\OrderController;
 use App\Http\Controllers\Api\V1\PingController;
 use App\Http\Controllers\Api\V1\ProductController;
 use Illuminate\Support\Facades\Route;
@@ -27,6 +28,9 @@ Route::middleware('stateful')->group(function () {
         Route::apiResource('addresses', AddressController::class);
 
         Route::post('/checkout', CheckoutController::class);
+
+        Route::get('/orders', [OrderController::class, 'index']);
+        Route::get('/orders/{number}', [OrderController::class, 'show']);
 
         Route::get('/cart', [CartController::class, 'show']);
         Route::post('/cart/items', [CartItemController::class, 'store']);

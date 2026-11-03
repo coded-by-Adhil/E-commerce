@@ -1,0 +1,15 @@
+$kind: http-request
+url: "{{baseUrl}}/api/v1/orders"
+method: GET
+headers:
+  Accept: application/json
+  Origin: http://localhost:5173
+  Referer: http://localhost:5173
+scripts:
+  - type: afterResponse
+    code: |-
+      const first = pm.response.json()?.data?.[0];
+      if (first) pm.globals.set("order_number", first.number);
+      console.log("order_number:", first?.number);
+    language: text/javascript
+order: 9300

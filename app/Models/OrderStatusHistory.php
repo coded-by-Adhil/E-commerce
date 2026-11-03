@@ -8,6 +8,10 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property OrderStatus|null $from_status
+ * @property OrderStatus $to_status
+ */
 class OrderStatusHistory extends Model
 {
     /** @use HasFactory<OrderStatusHistoryFactory> */
